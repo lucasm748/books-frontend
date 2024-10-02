@@ -1,5 +1,5 @@
 <template>
-  <v-card title="Dados Cadastrados" flat>
+  <v-card :title="cardTitle" flat>
     <template v-slot:text>
       <v-text-field v-model="search" label="Pesquisar" prepend-inner-icon="mdi-magnify" variant="outlined" hide-details
         single-line></v-text-field>
@@ -31,9 +31,10 @@ interface Item {
   [key: string]: any;
 }
 
-const props = defineProps<{
+defineProps<{
   headers: Header[];
   items: Item[];
+  cardTitle: string;
 }>();
 
 const search = ref('');

@@ -1,7 +1,9 @@
 <template>
   <v-container>
-    <DefaultDataTable :headers="headers" :items="authors" @edit="editAuthor" @remove="confirmRemoveAuthor" />
+    <DefaultDataTable :headers="headers" :items="authors" @edit="editAuthor" @remove="confirmRemoveAuthor"
+      :card-title="'Autores Cadastrados'" />
     <v-btn class="mt-4" color="blue" dark @click="openNewAuthorModal">Novo Autor</v-btn>
+    <v-btn class="mt-4 ml-2" color="green" dark @click="emitReport">Emitir Relatório</v-btn>
     <EditAuthorModal :isVisible="isEditModalVisible" :author="selectedAuthor" :mode="modalMode"
       @update:isVisible="isEditModalVisible = $event" @save="handleSave" />
     <v-dialog v-model="isConfirmDialogVisible" max-width="500px">
@@ -118,6 +120,23 @@ async function removeAuthor() {
     isConfirmDialogVisible.value = false;
   }
 }
+
+async function emitReport() {
+  try {
+    const response = await axios.get(import.meta.env.VITE_API_URL + '/authors/report', { responseType: 'blob' });
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'relatorio_autores.pdf');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    showSnackbar('Relatório emitido com sucesso!', 'success');
+  } catch (error) {
+    showSnackbar('Ocorreu um erro ao emitir o relatório.', 'error');
+  }
+}
+
 
 onMounted(() => {
   fetchAuthors();

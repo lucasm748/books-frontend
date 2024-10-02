@@ -1,52 +1,169 @@
 <template>
   <v-container>
-    <v-row>
-      <v-col>
-        <v-btn color="primary" @click="addBook">
-          <v-icon left>mdi-plus</v-icon>
-          Adicionar Livro
-        </v-btn>
-      </v-col>
-    </v-row>
-    <v-data-table :headers="headers" :items="books" class="elevation-1">
-      <template v-slot:item.actions="{ item }">
-        <v-icon small class="mr-2" @click="editBook(item)">mdi-pencil</v-icon>
-        <v-icon small @click="removeLivro(item)">mdi-delete</v-icon>
-      </template>
-    </v-data-table>
+    <DefaultDataTable :headers="headers" :items="books" @edit="editBook" @remove="confirmRemoveBook"
+      :card-title="'Livros Cadastrados'" />
+    <v-btn class="mt-4" color="blue" dark @click="openNewBookModal">Novo Livro</v-btn>
+    <v-btn class="mt-4 ml-2" color="green" dark @click="emitReport">Emitir Relatório</v-btn>
+    <EditBookModal :isVisible="isEditModalVisible" :book="selectedBook" :mode="modalMode"
+      @update:isVisible="isEditModalVisible = $event" @save="handleSave" />
+    <v-dialog v-model="isConfirmDialogVisible" max-width="500px">
+      <v-card>
+        <v-card-title class="headline">Confirmar Exclusão</v-card-title>
+        <v-card-text>Tem certeza de que deseja excluir este livro?</v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="blue darken-1" variant="text" @click="isConfirmDialogVisible = false">Cancelar</v-btn>
+          <v-btn color="red darken-1" variant="text" @click="removeBook">Excluir</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import DefaultDataTable from '@/components/DefaultDataTable.vue';
+import EditBookModal from '@/components/EditBookModal.vue';
+import { useSnackbar } from '@/services/eventBus';
+import axios from 'axios';
+import { onMounted, ref } from 'vue';
 
 interface Book {
   id: string;
   title: string;
+  publisher: string;
+  edition: number;
+  publicationyear: number;
+  authors: string[];
+  subjects: string[];
 }
 
-const books = ref<Book[]>([
-  { id: "122112HSSVS", title: 'Livro 1' },
-  { id: "A0GV032LLCS", title: 'Livro 2' },
+const books = ref<Book[]>([]);
+
+const headers = ref([
+  { key: 'id', title: 'Código', align: 'start' as const, sortable: false, width: '10%' },
+  { key: 'title', title: 'Título', align: 'start' as const },
+  { key: 'publisher', title: 'Editora', align: 'start' as const },
+  { key: 'edition', title: 'Edição', align: 'start' as const },
+  { key: 'publicationyear', title: 'Ano de Publicação', align: 'start' as const },
+  { key: 'actions', title: 'Ações', sortable: false, width: '10%' },
 ]);
 
-const headers = [
-  { text: 'ID', value: 'id' },
-  { text: 'Nome', value: 'title' },
-  { text: 'Ações', value: 'actions', sortable: false },
-];
+const { showSnackbar } = useSnackbar();
 
-function addBook() {
-  // Lógica para adicionar um novo livro
+const isEditModalVisible = ref(false);
+const isConfirmDialogVisible = ref(false);
+const selectedBook = ref<Book>({
+  id: '',
+  title: '',
+  publisher: '',
+  edition: 0,
+  publicationyear: 0,
+  authors: [],
+  subjects: [],
+});
+const modalMode = ref<'edit' | 'create'>('edit');
+
+async function fetchBooks() {
+  try {
+    const response = await axios.get(import.meta.env.VITE_API_URL + '/books');
+    books.value = response.data?.books;
+  } catch (error) {
+    showSnackbar('Ocorreu um erro ao buscar os livros.', 'error');
+  }
+}
+
+function openNewBookModal() {
+  selectedBook.value = {
+    id: '',
+    title: '',
+    publisher: '',
+    edition: 0,
+    publicationyear: 0,
+    authors: [],
+    subjects: [],
+  };
+  modalMode.value = 'create';
+  isEditModalVisible.value = true;
 }
 
 function editBook(item: Book) {
-  // Lógica para editar um livro
+  selectedBook.value = { ...item };
+  modalMode.value = 'edit';
+  isEditModalVisible.value = true;
 }
 
-function removeLivro(item: Book) {
-  // Lógica para remover um livro
+function confirmRemoveBook(item: Book) {
+  selectedBook.value = { ...item };
+  isConfirmDialogVisible.value = true;
 }
+
+async function handleSave(book: Book) {
+  if (modalMode.value === 'edit') {
+    await updateBook(book);
+  } else {
+    await createBook(book);
+  }
+}
+
+async function updateBook(updatedBook: Book) {
+  try {
+    const response = await axios.put(import.meta.env.VITE_API_URL + `/books/${updatedBook.id}`, updatedBook);
+    const index = books.value.findIndex(book => book.id === updatedBook.id);
+    if (index !== -1) {
+      books.value[index] = response.data.book;
+      showSnackbar('Livro atualizado com sucesso!', 'success');
+      await fetchBooks();
+    }
+  } catch (error) {
+    showSnackbar('Ocorreu um erro ao atualizar o livro.', 'error');
+  }
+}
+
+async function createBook(newBook: Book) {
+  try {
+    await axios.post(import.meta.env.VITE_API_URL + '/books', newBook);
+    showSnackbar('Livro criado com sucesso!', 'success');
+    await fetchBooks();
+  } catch (error) {
+    showSnackbar('Ocorreu um erro ao criar o livro.', 'error');
+  }
+}
+
+async function removeBook() {
+  try {
+    await axios.delete(import.meta.env.VITE_API_URL + `/books/${selectedBook.value.id}`);
+    showSnackbar('Livro removido com sucesso!', 'success');
+    await fetchBooks();
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response) {
+      showSnackbar(error.response.data.message, 'error');
+    } else {
+      showSnackbar('Ocorreu um erro ao remover o livro.', 'error');
+    }
+  } finally {
+    isConfirmDialogVisible.value = false;
+  }
+}
+
+async function emitReport() {
+  try {
+    const response = await axios.get(import.meta.env.VITE_API_URL + '/books/report', { responseType: 'blob' });
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'relatorio_livros.pdf');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    showSnackbar('Relatório emitido com sucesso!', 'success');
+  } catch (error) {
+    showSnackbar('Ocorreu um erro ao emitir o relatório.', 'error');
+  }
+}
+
+onMounted(() => {
+  fetchBooks();
+});
 </script>
 
 <style scoped>

@@ -1,0 +1,24 @@
+services:
+  books-frontend:
+    container_name: books-frontend
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        VITE_APP_ENV: ${VITE_APP_ENV}
+        VITE_BASE_URL: ${VITE_BASE_URL}
+        VITE_API_URL: ${VITE_API_URL}
+    ports:
+      - '8080:80'
+    environment:
+      VITE_APP_ENV: ${VITE_APP_ENV}
+      VITE_BASE_URL: ${VITE_BASE_URL}
+      VITE_API_URL: ${VITE_API_URL}
+    networks:
+      - books-backend_books-network
+    volumes:
+      - .:/usr/share/nginx/html
+
+networks:
+  books-backend_books-network:
+    external: true

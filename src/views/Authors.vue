@@ -25,6 +25,8 @@ import DefaultDataTable from '@/components/DefaultDataTable.vue';
 import EditAuthorModal from '@/components/EditAuthorModal.vue';
 import { useSnackbar } from '@/services/eventBus';
 import axios from 'axios';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 import { onMounted, ref } from 'vue';
 
 interface Author {
@@ -121,20 +123,16 @@ async function removeAuthor() {
   }
 }
 
-async function emitReport() {
-  try {
-    const response = await axios.get(import.meta.env.VITE_API_URL + '/authors/report', { responseType: 'blob' });
-    const url = window.URL.createObjectURL(new Blob([response.data]));
-    const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('download', 'relatorio_autores.pdf');
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    showSnackbar('Relatório emitido com sucesso!', 'success');
-  } catch (error) {
-    showSnackbar('Ocorreu um erro ao emitir o relatório.', 'error');
-  }
+function emitReport() {
+  const doc = new jsPDF();
+  doc.text('Relatório de Autores', 14, 16);
+  (doc as any).autoTable({
+    head: [['ID', 'Nome']],
+    body: authors.value.map(author => [author.id, author.name]),
+    startY: 20,
+  });
+  doc.save('relatorio_autores.pdf');
+  showSnackbar('Relatório emitido com sucesso!', 'success');
 }
 
 

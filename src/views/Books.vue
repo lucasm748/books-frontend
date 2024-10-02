@@ -25,7 +25,18 @@ import DefaultDataTable from '@/components/DefaultDataTable.vue';
 import EditBookModal from '@/components/EditBookModal.vue';
 import { useSnackbar } from '@/services/eventBus';
 import axios from 'axios';
+import jsPDF from 'jspdf';
 import { onMounted, ref } from 'vue';
+
+interface Author {
+  id: string;
+  name: string;
+};
+
+interface Subject {
+  id: string;
+  description: string;
+};
 
 interface Book {
   id: string;
@@ -33,8 +44,8 @@ interface Book {
   publisher: string;
   edition: number;
   publicationyear: number;
-  authors: string[];
-  subjects: string[];
+  authors: Author[];
+  subjects: Subject[];
 }
 
 const books = ref<Book[]>([]);
@@ -145,21 +156,18 @@ async function removeBook() {
   }
 }
 
-async function emitReport() {
-  try {
-    const response = await axios.get(import.meta.env.VITE_API_URL + '/books/report', { responseType: 'blob' });
-    const url = window.URL.createObjectURL(new Blob([response.data]));
-    const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('download', 'relatorio_livros.pdf');
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    showSnackbar('Relatório emitido com sucesso!', 'success');
-  } catch (error) {
-    showSnackbar('Ocorreu um erro ao emitir o relatório.', 'error');
-  }
+function emitReport() {
+  const doc = new jsPDF();
+  doc.text('Relatório de Livros', 14, 16);
+  (doc as any).autoTable({
+    head: [['ID', 'Nome', 'Editora', 'Edição', 'Autores', 'Assuntos']],
+    body: books.value.map(book => [book.id, book.title, book.publisher, book.edition, book.authors.map(author => author.name).join(', '), book.subjects.map(subject => subject.description).join(', ')]),
+    startY: 20,
+  });
+  doc.save('relatorio_livros.pdf');
+  showSnackbar('Relatório emitido com sucesso!', 'success');
 }
+
 
 onMounted(() => {
   fetchBooks();

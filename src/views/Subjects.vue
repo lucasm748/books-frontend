@@ -25,6 +25,7 @@ import DefaultDataTable from '@/components/DefaultDataTable.vue';
 import EditSubjectModal from '@/components/EditSubjectModal.vue';
 import { useSnackbar } from '@/services/eventBus';
 import axios from 'axios';
+import jsPDF from 'jspdf';
 import { onMounted, ref } from 'vue';
 
 interface Subject {
@@ -121,20 +122,16 @@ async function removeSubject() {
   }
 }
 
-async function emitReport() {
-  try {
-    const response = await axios.get(import.meta.env.VITE_API_URL + '/subjects/report', { responseType: 'blob' });
-    const url = window.URL.createObjectURL(new Blob([response.data]));
-    const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('download', 'relatorio_assuntos.pdf');
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    showSnackbar('Relatório emitido com sucesso!', 'success');
-  } catch (error) {
-    showSnackbar('Ocorreu um erro ao emitir o relatório.', 'error');
-  }
+function emitReport() {
+  const doc = new jsPDF();
+  doc.text('Relatório de Autores', 14, 16);
+  (doc as any).autoTable({
+    head: [['ID', 'Nome']],
+    body: subjects.value.map(subject => [subject.id, subject.description]),
+    startY: 20,
+  });
+  doc.save('relatorio_autores.pdf');
+  showSnackbar('Relatório emitido com sucesso!', 'success');
 }
 
 

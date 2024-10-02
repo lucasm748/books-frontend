@@ -1,19 +1,40 @@
 <template>
   <v-container>
-    <DefaultDataTable :headers="headers" :items="authors" @edit="editAuthor" @remove="confirmRemoveAuthor"
-      :card-title="'Autores Cadastrados'" />
-    <v-btn class="mt-4" color="blue" dark @click="openNewAuthorModal">Novo Autor</v-btn>
-    <v-btn class="mt-4 ml-2" color="green" dark @click="emitReport">Emitir Relatório</v-btn>
-    <EditAuthorModal :isVisible="isEditModalVisible" :author="selectedAuthor" :mode="modalMode"
-      @update:isVisible="isEditModalVisible = $event" @save="handleSave" />
+    <DefaultDataTable
+      :headers="headers"
+      :items="authors"
+      @edit="editAuthor"
+      @remove="confirmRemoveAuthor"
+      :card-title="'Autores Cadastrados'"
+    />
+    <v-btn class="mt-4" color="blue" dark @click="openNewAuthorModal"
+      >Novo Autor</v-btn
+    >
+    <v-btn class="mt-4 ml-2" color="green" dark @click="emitReport"
+      >Emitir Relatório</v-btn
+    >
+    <EditAuthorModal
+      :isVisible="isEditModalVisible"
+      :author="selectedAuthor"
+      :mode="modalMode"
+      @update:isVisible="isEditModalVisible = $event"
+      @save="handleSave"
+    />
     <v-dialog v-model="isConfirmDialogVisible" max-width="500px">
       <v-card>
         <v-card-title class="headline">Confirmar Exclusão</v-card-title>
         <v-card-text>Tem certeza de que deseja excluir este autor?</v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn color="blue darken-1" variant="text" @click="isConfirmDialogVisible = false">Cancelar</v-btn>
-          <v-btn color="red darken-1" variant="text" @click="removeAuthor">Excluir</v-btn>
+          <v-btn
+            color="blue darken-1"
+            variant="text"
+            @click="isConfirmDialogVisible = false"
+            >Cancelar</v-btn
+          >
+          <v-btn color="red darken-1" variant="text" @click="removeAuthor"
+            >Excluir</v-btn
+          >
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -37,7 +58,13 @@ interface Author {
 const authors = ref<Author[]>([]);
 
 const headers = ref([
-  { key: 'id', title: 'ID', align: 'start' as const, sortable: false, width: '20%' },
+  {
+    key: 'id',
+    title: 'ID',
+    align: 'start' as const,
+    sortable: false,
+    width: '20%',
+  },
   { key: 'name', title: 'Nome', align: 'start' as const },
   { key: 'actions', title: 'Ações', sortable: false, width: '10%' },
 ]);
@@ -85,8 +112,13 @@ async function handleSave(author: Author) {
 
 async function updateAuthor(updatedAuthor: Author) {
   try {
-    const response = await axios.put(import.meta.env.VITE_API_URL + `/authors/${updatedAuthor.id}`, updatedAuthor);
-    const index = authors.value.findIndex(author => author.id === updatedAuthor.id);
+    const response = await axios.put(
+      import.meta.env.VITE_API_URL + `/authors/${updatedAuthor.id}`,
+      updatedAuthor,
+    );
+    const index = authors.value.findIndex(
+      (author) => author.id === updatedAuthor.id,
+    );
     if (index !== -1) {
       authors.value[index] = response.data.author;
       showSnackbar('Autor atualizado com sucesso!', 'success');
@@ -109,7 +141,9 @@ async function createAuthor(newAuthor: Author) {
 
 async function removeAuthor() {
   try {
-    await axios.delete(import.meta.env.VITE_API_URL + `/authors/${selectedAuthor.value.id}`);
+    await axios.delete(
+      import.meta.env.VITE_API_URL + `/authors/${selectedAuthor.value.id}`,
+    );
     showSnackbar('Autor removido com sucesso!', 'success');
     await fetchAuthors();
   } catch (error) {
@@ -128,13 +162,12 @@ function emitReport() {
   doc.text('Relatório de Autores', 14, 16);
   (doc as any).autoTable({
     head: [['ID', 'Nome']],
-    body: authors.value.map(author => [author.id, author.name]),
+    body: authors.value.map((author) => [author.id, author.name]),
     startY: 20,
   });
   doc.save('relatorio_autores.pdf');
   showSnackbar('Relatório emitido com sucesso!', 'success');
 }
-
 
 onMounted(() => {
   fetchAuthors();

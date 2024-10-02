@@ -58,7 +58,7 @@ const headers = ref([
     title: 'Código',
     align: 'start' as const,
     sortable: false,
-    width: '10%',
+    width: '5%',
   },
   { key: 'title', title: 'Título', align: 'start' as const },
   { key: 'publisher', title: 'Editora', align: 'start' as const },
@@ -67,8 +67,10 @@ const headers = ref([
     key: 'publicationYear',
     title: 'Ano de Publicação',
     align: 'start' as const,
+    width: '5%',
   },
-  { key: 'actions', title: 'Ações', sortable: false, width: '10%' },
+  { key: 'price', title: 'Preço', sortable: true, width: '5%' },
+  { key: 'actions', title: 'Ações', sortable: false, width: '8%' },
 ]);
 
 const { showSnackbar } = useSnackbar();

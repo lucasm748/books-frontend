@@ -7,7 +7,7 @@
           :prepend-icon="
             theme === 'light' ? 'mdi-weather-sunny' : 'mdi-weather-night'
           "
-          text="Toggle Theme"
+          text="Alterar tema"
           slim
           @click="onClick"
         ></v-btn>

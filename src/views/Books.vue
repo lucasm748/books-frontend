@@ -45,29 +45,10 @@
 import DefaultDataTable from '@/components/DefaultDataTable.vue';
 import EditBookModal from '@/components/EditBookModal.vue';
 import { useSnackbar } from '@/services/eventBus';
+import { Book } from '@/types/Book';
 import axios from 'axios';
 import jsPDF from 'jspdf';
 import { onMounted, ref } from 'vue';
-
-interface Author {
-  id: string;
-  name: string;
-}
-
-interface Subject {
-  id: string;
-  description: string;
-}
-
-interface Book {
-  id: string;
-  title: string;
-  publisher: string;
-  edition: number;
-  publicationyear: number;
-  authors: Author[];
-  subjects: Subject[];
-}
 
 const books = ref<Book[]>([]);
 
@@ -83,7 +64,7 @@ const headers = ref([
   { key: 'publisher', title: 'Editora', align: 'start' as const },
   { key: 'edition', title: 'Edição', align: 'start' as const },
   {
-    key: 'publicationyear',
+    key: 'publicationYear',
     title: 'Ano de Publicação',
     align: 'start' as const,
   },
@@ -98,10 +79,11 @@ const selectedBook = ref<Book>({
   id: '',
   title: '',
   publisher: '',
-  edition: 0,
-  publicationyear: 0,
+  edition: 1,
+  publicationYear: 2024,
   authors: [],
   subjects: [],
+  price: 0,
 });
 const modalMode = ref<'edit' | 'create'>('edit');
 
@@ -119,11 +101,13 @@ function openNewBookModal() {
     id: '',
     title: '',
     publisher: '',
-    edition: 0,
-    publicationyear: 0,
+    edition: 1,
+    price: 0,
+    publicationYear: 2024,
     authors: [],
     subjects: [],
   };
+
   modalMode.value = 'create';
   isEditModalVisible.value = true;
 }
@@ -216,6 +200,4 @@ onMounted(() => {
 });
 </script>
 
-<style scoped>
-/* Adicione estilos específicos para o componente aqui, se necessário */
-</style>
+<style scoped></style>

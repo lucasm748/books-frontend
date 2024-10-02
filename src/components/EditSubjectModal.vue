@@ -3,6 +3,7 @@
     :model-value="isVisible"
     @update:model-value="updateVisibility"
     max-width="500px"
+    @click:outside="close"
   >
     <v-card>
       <v-card-title>
@@ -11,10 +12,11 @@
         }}</span>
       </v-card-title>
       <v-card-text>
-        <v-form ref="form">
+        <v-form ref="formRef" v-model="isFormValid">
           <v-text-field
-            v-model="subject.description"
+            v-model="subjectLocal.description"
             label="Descrição"
+            :rules="[rules.required, rules.maxLength(40)]"
             required
           ></v-text-field>
         </v-form>
@@ -24,15 +26,21 @@
         <v-btn color="blue darken-1" variant="text" @click="close"
           >Cancelar</v-btn
         >
-        <v-btn color="blue darken-1" variant="text" @click="save">{{
-          mode === 'edit' ? 'Salvar' : 'Criar'
-        }}</v-btn>
+        <v-btn
+          color="blue darken-1"
+          variant="text"
+          :disabled="!isFormValid"
+          @click="save"
+        >
+          {{ mode === 'edit' ? 'Salvar' : 'Criar' }}
+        </v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
 </template>
 
 <script setup lang="ts">
+import { rules } from '@/utils/validationRules';
 import { defineEmits, defineProps, ref, watch } from 'vue';
 
 const props = defineProps<{
@@ -40,14 +48,17 @@ const props = defineProps<{
   subject: { id: string; description: string };
   mode: 'edit' | 'create';
 }>();
+
 const emit = defineEmits(['update:isVisible', 'save']);
 
-const subject = ref({ ...props.subject });
+const subjectLocal = ref({ ...props.subject });
+const isFormValid = ref(false);
+const formRef = ref();
 
 watch(
   () => props.subject,
   (newSubject) => {
-    subject.value = { ...newSubject };
+    subjectLocal.value = { ...newSubject };
   },
 );
 
@@ -59,9 +70,14 @@ function close() {
   emit('update:isVisible', false);
 }
 
-function save() {
-  emit('save', subject.value);
-  close();
+async function save() {
+  if (formRef.value) {
+    const isValid = await formRef.value.validate();
+    if (isValid) {
+      emit('save', subjectLocal.value);
+      emit('update:isVisible', false);
+    }
+  }
 }
 </script>
 

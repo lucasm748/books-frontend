@@ -45,15 +45,11 @@
 import DefaultDataTable from '@/components/DefaultDataTable.vue';
 import EditAuthorModal from '@/components/EditAuthorModal.vue';
 import { useSnackbar } from '@/services/eventBus';
+import { Author } from '@/types/Author';
 import axios from 'axios';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import { onMounted, ref } from 'vue';
-
-interface Author {
-  id: string;
-  name: string;
-}
 
 const authors = ref<Author[]>([]);
 
@@ -174,6 +170,4 @@ onMounted(() => {
 });
 </script>
 
-<style scoped>
-/* Adicione estilos específicos para o componente aqui, se necessário */
-</style>
+<style scoped></style>

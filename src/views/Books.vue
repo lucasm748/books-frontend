@@ -69,7 +69,7 @@ const headers = ref([
     align: 'start' as const,
     width: '5%',
   },
-  { key: 'price', title: 'Preço', sortable: true, width: '5%' },
+  { key: 'price', title: 'Preço(R$)', sortable: true, width: '5%' },
   { key: 'actions', title: 'Ações', sortable: false, width: '8%' },
 ]);
 

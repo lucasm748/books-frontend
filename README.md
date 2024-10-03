@@ -27,4 +27,4 @@ Ou então para buildar
 `yarn build`
 
 ##URL do projeto
-http://localhost:8080/
+http://localhost:3000/
